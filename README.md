@@ -7,7 +7,7 @@ cryptocurrency to impoverished African children.
 
 ## FAQ
 
-# What is UnofficialKYC?
+### What is UnofficialKYC?
 
 UnofficialKYC is a platform for users to link their accounts on many online
 services to a single anonymous charitable donation, while maintaining seperate
