@@ -53,29 +53,48 @@ func browseTo(url string) error {
 
 var db *gorm.DB
 
+var dbpath string
+
+func withDBPath(f func(path string)) error {
+	w := errWrapper("error grabbing database path")
+	if isInsideSnap {
+		dbpath = os.Getenv("SNAP_USER_DATA") + "/"
+	} else if user, err := user.Current(); err != nil {
+		return w(err, "couldn't grab the running user")
+	} else if runtime.GOOS == "windows" {
+		dbpath = user.HomeDir + `\AppData\Roaming\unofficialkyc\`
+	} else {
+		dbpath = user.HomeDir + "/.local/share/unofficialkyc/"
+	}
+	return nil
+}
+
+//I wish golang had better typing :/
+func withDBPathErr(f func(path string) error) error {
+	var ranErr error
+	if err := withDBPath(func(path string) {
+		ranErr = f(path)
+	}); err != nil {
+		return err
+	}
+	return ranErr
+}
+
 func withDB(f func(*gorm.DB)) error {
 	if db == nil {
 		w := errWrapper("error initializing local db")
-		//Find where to put the DB
-		var dbpath string
-		if isInsideSnap {
-			dbpath = os.Getenv("SNAP_USER_DATA") + "/"
-		} else if user, err := user.Current(); err != nil {
-			return w(err, "couldn't grab the running user")
-		} else if runtime.GOOS == "windows" {
-			dbpath = user.HomeDir + `\AppData\Roaming\unofficialkyc\local.db`
-		} else {
-			dbpath = user.HomeDir + "/.local/share/unofficialkyc/"
-		}
-
-		if err := os.MkdirAll(dbpath, 0700); err != nil {
-			return w(err, "error making sure directory for local db exists")
-		} else if db, err = gorm.Open(sqlite.Open(dbpath+"local.db"), &gorm.Config{}); err != nil {
-			return w(err, "error opening local db")
-		} else if err := db.AutoMigrate(&User{}); err != nil {
-			return w(err, "error migrating user table for local db")
-		} else if err := db.AutoMigrate(&Config{}); err != nil {
-			return w(err, "error migrating config table for local db")
+		if err := withDBPathErr(func(path string) error {
+			var err error
+			if db, err = gorm.Open(sqlite.Open(path), &gorm.Config{}); err != nil {
+				return w(err, "error opening local db")
+			} else if err := db.AutoMigrate(&User{}); err != nil {
+				return w(err, "error migrating user table for local db")
+			} else if err := db.AutoMigrate(&Config{}); err != nil {
+				return w(err, "error migrating config table for local db")
+			}
+			return nil
+		}); err != nil {
+			return w(err)
 		}
 		db.Logger.LogMode(logger.Info)
 	}
@@ -223,6 +242,13 @@ func printHelp() {
     `)
 }
 
+func dangerous(f func()) {
+	if os.Getenv("DANGEROUS") != "TRUE" {
+		fmt.Println("You don't have the DANGEROUS=TRUE environment variable set. This command requires it; please don't use api_switch unless you are either a UFKYC developer or want to get owned.")
+	}
+	f()
+}
+
 //Only braindead monkeys whine about programs putting a lot of code in main().
 //Contrary to popular belief, taking your laundry list and dividing it into
 //doThis() and doThat() subroutines does not automatically make your code
@@ -237,22 +263,22 @@ func main() {
 		command := os.Args[1]
 		switch command {
 		case "api_switch":
-			if os.Getenv("DANGEROUS") != "TRUE" {
-				fmt.Println("You don't have the DANGEROUS=TRUE environment variable set. This command requires it; please don't use api_switch unless you are either a UFKYC developer or want to get owned.")
-			} else if len(os.Args) == 3 {
-				if !strings.HasPrefix(os.Args[2], "http") || validation.Validate(os.Args[2], is.URL) != nil {
-					fmt.Println("Passed argument is not a valid URL.")
-				} else {
-					printErr(withConfig(func(config *Config) {
-						config.ApiEndpoint = os.Args[2]
-						if err := db.Save(config).Error; err != nil {
-							fmt.Println("Error saving new API endpoint into database:", err)
-						} else {
-							fmt.Println("All your commands will now contact", os.Args[2], "for api requests.")
-						}
-					}))
+			dangerous(func() {
+				if len(os.Args) == 3 {
+					if !strings.HasPrefix(os.Args[2], "http") || validation.Validate(os.Args[2], is.URL) != nil {
+						fmt.Println("Passed argument is not a valid URL.")
+					} else {
+						printErr(withConfig(func(config *Config) {
+							config.ApiEndpoint = os.Args[2]
+							if err := db.Save(config).Error; err != nil {
+								fmt.Println("Error saving new API endpoint into database:", err)
+							} else {
+								fmt.Println("All your commands will now contact", os.Args[2], "for api requests.")
+							}
+						}))
+					}
 				}
-			}
+			})
 		case "register":
 			//We need the config so we can save the user and also so that we can know what endpoint to contact
 			printErr(withConfig(func(conf *Config) {
@@ -446,6 +472,12 @@ func main() {
 					printHelp()
 				}
 			}
+		case "clear":
+			dangerous(func() {
+				printErr(withDBPathErr(func(path string) error {
+					return os.Remove(path)
+				}))
+			})
 		case "token":
 			printErr(withUser(func(user *User) {
 				if clipboard.Unsupported {
