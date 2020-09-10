@@ -14,9 +14,6 @@ parts:
         source-type: git
         build-packages: 
             - build-essential
-            - musl
-            - musl-dev
-            - musl-tools
         stage-packages:
             - libc6
             - bash
@@ -26,7 +23,7 @@ parts:
         override-build: |
             mkdir -p "${SNAPCRAFT_PART_INSTALL}"
             cd "${SNAPCRAFT_PART_SRC}"
-            CC="$(which musl-gcc)" go build -ldflags '-linkmode external -extldflags "-static"' -o "${SNAPCRAFT_PART_INSTALL}"
+            go build -o "${SNAPCRAFT_PART_INSTALL}"
 apps:
     kycli:
         environment: 
