@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -28,21 +29,27 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func open(url string) error {
+var isInsideSnap = os.Getenv("SNAP") != ""
+
+func browseTo(url string) error {
 	var cmd string
 	var args []string
 
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	case "darwin":
-		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
-		cmd = "xdg-open"
+	if isInsideSnap {
+		return errors.New("inside sandboxed environment")
+	} else {
+		switch runtime.GOOS {
+		case "windows":
+			cmd = "cmd"
+			args = []string{"/c", "start"}
+		case "darwin":
+			cmd = "open"
+		default: // "linux", "freebsd", "openbsd", "netbsd"
+			cmd = "xdg-open"
+		}
+		args = append(args, url)
+		return exec.Command(cmd, args...).Start()
 	}
-	args = append(args, url)
-	return exec.Command(cmd, args...).Start()
 }
 
 var db *gorm.DB
@@ -52,7 +59,7 @@ func withDB(f func(*gorm.DB)) error {
 		w := errWrapper("error initializing local db")
 		//Find where to put the DB
 		var dbpath string
-		if os.Getenv("SNAP_USER_DATA") != "" {
+		if isInsideSnap {
 			dbpath = os.Getenv("SNAP_USER_DATA") + "/"
 		} else if user, err := user.Current(); err != nil {
 			return w(err, "couldn't grab the running user")
@@ -131,7 +138,7 @@ func withUser(f func(user *User)) error {
 			} else if resp.StatusCode == http.StatusUnauthorized {
 				return errors.New("Incorrect username or password")
 			} else if resp.StatusCode != 200 {
-				return w(errors.New(string(b)), "api returned non-200 response code when trying to get a new apit token, along with the following body")
+				return w(errors.New(string(b)), "api returned non-200 response code when trying to get a new API token, along with the following body")
 			} else {
 				conf.User.Name = username
 				conf.User.ApiToken = strings.TrimSpace(string(b))
@@ -224,6 +231,7 @@ func printHelp() {
 //dumb one.
 
 func main() {
+	log.Println(os.Environ())
 	if len(os.Args) < 2 {
 		fmt.Println("Must specify a command.")
 		printHelp()
@@ -321,9 +329,16 @@ func main() {
 						fmt.Println("Error reading API response (no payment was made):", err)
 					} else if resp.StatusCode != http.StatusOK {
 						fmt.Println("API returned with an error (no payment was made) and the following response body:", string(b))
-					} else if err := open(string(b)); err != nil {
+					} else if url := strings.TrimSpace(string(b)); validation.Validate(url, is.URL) != nil {
+						fmt.Println("Strange; the API returned a non-url to browse to to continue payment, but delivered an OK status code. Here was the URL:")
+						fmt.Println(url)
+					} else if isInsideSnap {
+						clipboard.WriteAll(url)
+						fmt.Println("Please browse to the URL pasted into your clipboard and finish your cryptocurrency payment.")
+						fmt.Println("Your donation will be confirmed shortly therafter.")
+					} else if err := browseTo(url); err != nil {
 						fmt.Println("An error occured opening the payment URL: ", err)
-						fmt.Println("Please attempt to go to " + string(b) + " in whatever browser you have available manually to finish your payment.")
+						fmt.Println("Please attempt to go to", url, " in whatever browser you have available manually to finish your payment.")
 					} else {
 						fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab. Your donation will be confirmed shortly thereafter.")
 					}
@@ -436,7 +451,7 @@ func main() {
 		case "token":
 			printErr(withUser(func(user *User) {
 				if clipboard.Unsupported {
-					fmt.Println("Sorry, clipboard functionality is not supported for your OS.")
+					fmt.Println("Sorry, clipboard functionality was not found for your current running environment.")
 					if runtime.GOOS == "linux" {
 						fmt.Println("Make sure you have the clipboard program installed for your preferred display manager (xclip, xsel, wl-clip, etc.)")
 					}

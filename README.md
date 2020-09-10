@@ -9,19 +9,20 @@ This project is in the very early stages of its existence. We're publishing it
 because we want you to use it, but be aware, you're probably going to have
 personal conversations with the devs in our Keybase (link at the bottom) about
 bugs you find or ambiguous setup steps. We're happy to help you manually
-install it so it can start to get tested.
+install and work through issues you find using it so that it will begin to get
+tested.
 
 ## FAQ
 
 ### What is UnofficialKYC?
 
-UnofficialKYC is a platform for users to anonymously link their accounts on
-many online services to a single charitable donation, without having to share
-their identity between those services. In doing this, UFKYC provides a way for
-companies to penalize the creation of many different accounts, without
-requiring genuinely new users to pay money they haven't already provided for
-another service before, and without having to require identifying information
-from new users like passports or IDs.
+UnofficialKYC is a platform for users to link their accounts on many online
+services to a single charitable donation, without having to share their
+disclose their real life identity or shared identity between those services. In
+doing this, UFKYC provides a way for companies to penalize the creation of many
+different accounts, without requiring genuinely new users to pay money they
+haven't already provided for another service, and without having to require
+identifying information like passports or IDs.
 
 By incorporating UnofficialKYC into their authentication or signup procedures, websites can:
 
@@ -143,27 +144,24 @@ distribution), run the terminal command:
 And that's it.
 
 The snap works on more distributions than we could ever expect to suport
-directly, updates automatically, only occupies a trivial amount more space than
-it does when the CLI is compiled by hand, provides a standard environment for
-the thing to run in and for us to test, and allows us to sandbox it reasonably
-securely from the rest of your operating system without resorting to docker
-containers. It's too much of a quick win for us to start writing .debs and
-.emerges and .aurs by hand at the moment.  Perhaps someday this CLI will be
-fantastically popular and this installation guide will be filled with
-distro-specific packages, but we're not going to go make them, because there's
-the snap.
+directly, updates automatically, provides a standard environment for the thing
+to run in and for us to test, it's barely bigger than the default binary, and
+allows us to somewhat securely sandbox it from the rest of your operating
+system without resorting to docker containers.  It's too much of a quick win
+for us to start writing .debs and .emerges and .aurs by hand, when we could be
+further developing the platform for the people that use it. 
 
-Nevertheless, we understand automatic updates for some people are a no-no, even
-though in this case we think they're a net positive, and those people should go
-ahead and try:
+We do understand, however, that automatic updates for some people are a no-no,
+even though in this case we think they're a net positive. Those people who
+dislike either of those things should go ahead and try:
 
-### Manual compilation
+### Manual compilation (it's not as hard as it usually is)
 
 To manually compile, first install [go](https://golang.org). Then either run
 `go install github.com/unofficialkyc-cli`, or simply clone the repository and
 run `go build`. You should be left with a working CLI called `kycli` in your
 `~/go/bin/` folder or inside the cloned repository, respectively. You can place
-that wherever you like.
+that wherever you like, perhaps in `/usr/bin/`.
 
 ---
 

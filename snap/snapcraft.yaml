@@ -18,17 +18,23 @@ parts:
             - musl-dev
             - musl-tools
         stage-packages:
-            - busybox
-            - flatpak-xdg-utils
-            - firefox
+            - libc6
+            - bash
+            - xclip
+            - xsel
+            - wl-clipboard
         override-build: |
             mkdir -p "${SNAPCRAFT_PART_INSTALL}"
             cd "${SNAPCRAFT_PART_SRC}"
             CC="$(which musl-gcc)" go build -ldflags '-linkmode external -extldflags "-static"' -o "${SNAPCRAFT_PART_INSTALL}"
 apps:
     kycli:
+        environment: 
+            PATH: "$PATH:$SNAP/bin:$SNAP/usr/bin"
         command: kycli
         adapter: none
         plugs:
             - network
             - browser-support
+            - wayland
+            - x11
