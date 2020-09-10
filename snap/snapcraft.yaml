@@ -17,10 +17,14 @@ parts:
             - musl
             - musl-dev
             - musl-tools
+        stage-packages:
+            - busybox
+            - flatpak-xdg-utils
+            - firefox
         override-build: |
             mkdir -p "${SNAPCRAFT_PART_INSTALL}"
             cd "${SNAPCRAFT_PART_SRC}"
-            CC="$(which musl-gcc)" go build -ldflags '-linkmode external -extldflags "-static"' -o "${SNAPCRAFT_PART_INSTALL}" ./...
+            CC="$(which musl-gcc)" go build -ldflags '-linkmode external -extldflags "-static"' -o "${SNAPCRAFT_PART_INSTALL}"
 apps:
     kycli:
         command: kycli
