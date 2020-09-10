@@ -1,0 +1,30 @@
+name: kycli
+summary: The command line interface to the unofficialkyc platform.
+description: |
+    The command line interface to the unofficialkyc platform.
+version: git
+base: bare
+build-base: core20
+grade: devel
+confinement: devmode
+parts:
+    kycli:
+        plugin: go
+        source: .
+        source-type: git
+        build-packages: 
+            - build-essential
+            - musl
+            - musl-dev
+            - musl-tools
+        override-build: |
+            mkdir -p "${SNAPCRAFT_PART_INSTALL}"
+            cd "${SNAPCRAFT_PART_SRC}"
+            CC="$(which musl-gcc)" go build -ldflags '-linkmode external -extldflags "-static"' -o "${SNAPCRAFT_PART_INSTALL}" ./...
+apps:
+    kycli:
+        command: kycli
+        adapter: none
+        plugs:
+            - network
+            - browser-support

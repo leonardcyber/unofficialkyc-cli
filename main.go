@@ -50,26 +50,28 @@ var db *gorm.DB
 func withDB(f func(*gorm.DB)) error {
 	if db == nil {
 		w := errWrapper("error initializing local db")
-		if user, err := user.Current(); err != nil {
+		//Find where to put the DB
+		var dbpath string
+		if os.Getenv("SNAP_USER_DATA") != "" {
+			dbpath = os.Getenv("SNAP_USER_DATA") + "/"
+		} else if user, err := user.Current(); err != nil {
 			return w(err, "couldn't grab the running user")
+		} else if runtime.GOOS == "windows" {
+			dbpath = user.HomeDir + `\AppData\Roaming\unofficialkyc\local.db`
 		} else {
-			var dbpath string
-			if runtime.GOOS == "windows" {
-				dbpath = user.HomeDir + `\AppData\Roaming\unofficialkyc\local.db`
-			} else {
-				dbpath = user.HomeDir + "/.local/share/unofficialkyc/local.db"
-			}
-			if err := os.MkdirAll(dbpath, 0700); err != nil {
-				return w(err, "error making sure directory for local db exists")
-			} else if db, err = gorm.Open(sqlite.Open(dbpath+"/local.db"), &gorm.Config{}); err != nil {
-				return w(err, "error opening local db")
-			} else if err := db.AutoMigrate(&User{}); err != nil {
-				return w(err, "error migrating user table for local db")
-			} else if err := db.AutoMigrate(&Config{}); err != nil {
-				return w(err, "error migrating config table for local db")
-			}
-			db.Logger.LogMode(logger.Info)
+			dbpath = user.HomeDir + "/.local/share/unofficialkyc/"
 		}
+
+		if err := os.MkdirAll(dbpath, 0700); err != nil {
+			return w(err, "error making sure directory for local db exists")
+		} else if db, err = gorm.Open(sqlite.Open(dbpath+"local.db"), &gorm.Config{}); err != nil {
+			return w(err, "error opening local db")
+		} else if err := db.AutoMigrate(&User{}); err != nil {
+			return w(err, "error migrating user table for local db")
+		} else if err := db.AutoMigrate(&Config{}); err != nil {
+			return w(err, "error migrating config table for local db")
+		}
+		db.Logger.LogMode(logger.Info)
 	}
 	f(db)
 	return nil
