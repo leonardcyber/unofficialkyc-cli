@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -231,7 +230,6 @@ func printHelp() {
 //dumb one.
 
 func main() {
-	log.Println(os.Environ())
 	if len(os.Args) < 2 {
 		fmt.Println("Must specify a command.")
 		printHelp()
