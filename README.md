@@ -47,23 +47,25 @@ which, depending on the service, give access to the site or are used as apart
 of the authentication process.
 
 The beauty of this system is that you can donate the money once, and then
-generate a token for any service that allows users from that stake level or
+generate a token for any service that accepts signups at that stake level or
 higher. This means that bans for traditionally porous internet communities can
 finally have "teeth" - regular UFKYC users can sign up for most services with
-no paywall beyond an initial payment, but rulebreakers, shills, and trolls are
-forced to make new UFKYC passports and provide the stake again and again.  At
-the same time, these services will never receive your passport ID, and the
-tokens you generate will only tell the service who you are on their platform
-and won't automatically disclose all of your other accounts.
+no paywall beyond their first, but rulebreakers, shills, and trolls are forced
+to make new UFKYC passports and provide the stake again and again.  At the same
+time, these services will never receive your passport ID, and the tokens you
+generate will only tell the service who you are on their platform. Unlike the
+OAUTH "sign in with google" buttons, sites you use UFKYC to authenticate to
+won't be able to look up what other accounts you have signed in for with the
+same account by comparing email addresses.
 
 Because the funds are an arbitrary "proof-of-stake", and exist to enable the
 service as much to financially support UFKYC, only 10% of stakes users provide
 are actually go to the UFKYC devs. The other 90% are donated to
 [GiveDirectly](https://www.givedirectly.org). GiveDirectly is a top-rated
 nonprofit foundation that provides electronic cash transfers to the world's
-poorest. They are probably the world's most effective and well-researched
-charity available today, and you should consider donating to them anyways if
-you don't use our services.
+poorest. GiveDirectly has been a [GiveWell](https://www.givewell.org) top rated
+charity for 8 years running, and you should consider donating to them anyways
+if you don't use our services.
 
 ### How does UFKYC's authentication flow work?
 
