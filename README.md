@@ -37,7 +37,7 @@ By incorporating UnofficialKYC into their authentication or signup procedures, w
    good users with a (local and unique) paywall.
 5. Help reduce extreme poverty.
 
-### Who am I paying and why? You say most of it's going to charity?
+### Who am I paying and why? You say it's going to charity?
 
 The services registered with UFKYC prevent redundant account creation by
 requiring users to create a "stake", a given amount donated on behalf of a
@@ -59,13 +59,12 @@ won't be able to look up what other accounts you have signed in for with the
 same account by comparing email addresses.
 
 Because the funds are an arbitrary "proof-of-stake", and exist to enable the
-service as much to financially support UFKYC, only 10% of stakes users provide
-go to the UFKYC devs. The other 90% are donated to
-[GiveDirectly](https://www.givedirectly.org). GiveDirectly is a top-rated
-nonprofit foundation that provides electronic cash transfers to the world's
-poorest. GiveDirectly has been a [GiveWell](https://www.givewell.org) top rated
-charity for 8 years running, and you should consider donating to them anyways
-if you don't use our services.
+service as much to financially support UFKYC, all funds staked in the way are
+donated to [GiveDirectly](https://www.givedirectly.org). GiveDirectly is a
+top-rated nonprofit foundation that provides electronic cash transfers to the
+world's poorest. GiveDirectly has been a [GiveWell](https://www.givewell.org)
+top rated charity for 8 years running, and you should consider donating to them
+anyways if you don't use our services.
 
 ### How does UFKYC's authentication flow work?
 
