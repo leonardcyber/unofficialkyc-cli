@@ -5,8 +5,8 @@ description: |
 version: git
 base: bare
 build-base: core20
-grade: devel
-confinement: devmode
+grade: stable
+confinement: strict
 parts:
     kycli:
         plugin: go
