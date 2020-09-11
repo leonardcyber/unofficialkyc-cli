@@ -340,41 +340,45 @@ func main() {
 		case "donate":
 			var amount float64
 			philanthropize := func() {
-				fmt.Println("Enter an email address to be associated with the payment, in case of disputes. You may use a tempmail if desired:")
-				var email string
-				for {
-					fmt.Scanln(&email)
-					if err := validation.Validate(email, is.Email); err != nil {
-						fmt.Println("Email entered was invalid; try again:")
-					} else {
-						break
+				if amount < 10 {
+					fmt.Println("The payment processor we use only accepts payments of ten or more dollars. Sorry.")
+				} else {
+					fmt.Println("Enter an email address to be associated with the payment, in case of disputes. You may use a tempmail if desired:")
+					var email string
+					for {
+						fmt.Scanln(&email)
+						if err := validation.Validate(email, is.Email); err != nil || strings.TrimSpace(email) == "" {
+							fmt.Println("Email entered was invalid; try again:")
+						} else {
+							break
+						}
 					}
+					printErr(withUser(func(user *User) {
+						if resp, err := user.PostForm("/donate", url.Values{
+							"amount":         []string{strconv.FormatFloat(amount, 'f', 5, 64)},
+							"payment_vendor": []string{"globee"},
+							"email":          []string{email},
+						}); err != nil {
+							fmt.Println("Error contacting API (no payment was made):", err)
+						} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
+							fmt.Println("Error reading API response (no payment was made):", err)
+						} else if resp.StatusCode != http.StatusOK {
+							fmt.Println("API returned with an error (no payment was made) and the following response body:", string(b))
+						} else if url := strings.TrimSpace(string(b)); validation.Validate(url, is.URL) != nil {
+							fmt.Println("Strange; the API returned a non-url to browse to to continue payment, but delivered an OK status code. Here was the URL:")
+							fmt.Println(url)
+						} else if isInsideSnap {
+							clipboard.WriteAll(url)
+							fmt.Println("Please browse to the URL pasted into your clipboard and finish your cryptocurrency payment.")
+							fmt.Println("Your donation will be confirmed shortly therafter.")
+						} else if err := browseTo(url); err != nil {
+							fmt.Println("An error occured opening the payment URL: ", err)
+							fmt.Println("Please attempt to go to", url, " in whatever browser you have available manually to finish your payment.")
+						} else {
+							fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab. Your donation will be confirmed shortly thereafter.")
+						}
+					}))
 				}
-				printErr(withUser(func(user *User) {
-					if resp, err := user.PostForm("/donate", url.Values{
-						"amount":         []string{strconv.FormatFloat(amount, 'f', 5, 64)},
-						"payment_vendor": []string{"globee"},
-						"email":          []string{email},
-					}); err != nil {
-						fmt.Println("Error contacting API (no payment was made):", err)
-					} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
-						fmt.Println("Error reading API response (no payment was made):", err)
-					} else if resp.StatusCode != http.StatusOK {
-						fmt.Println("API returned with an error (no payment was made) and the following response body:", string(b))
-					} else if url := strings.TrimSpace(string(b)); validation.Validate(url, is.URL) != nil {
-						fmt.Println("Strange; the API returned a non-url to browse to to continue payment, but delivered an OK status code. Here was the URL:")
-						fmt.Println(url)
-					} else if isInsideSnap {
-						clipboard.WriteAll(url)
-						fmt.Println("Please browse to the URL pasted into your clipboard and finish your cryptocurrency payment.")
-						fmt.Println("Your donation will be confirmed shortly therafter.")
-					} else if err := browseTo(url); err != nil {
-						fmt.Println("An error occured opening the payment URL: ", err)
-						fmt.Println("Please attempt to go to", url, " in whatever browser you have available manually to finish your payment.")
-					} else {
-						fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab. Your donation will be confirmed shortly thereafter.")
-					}
-				}))
 			}
 			if len(os.Args) < 3 {
 				fmt.Println("Enter amount you want to amount, in U.S. dollars: ")
