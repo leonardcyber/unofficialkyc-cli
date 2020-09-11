@@ -37,7 +37,7 @@ By incorporating UnofficialKYC into their authentication or signup procedures, w
    good users with a (local and unique) paywall.
 5. Help reduce extreme poverty.
 
-### Who am I paying and why? You say it's going to charity?
+### Who am I paying and why? You say most of it's going to charity?
 
 The services registered with UFKYC prevent redundant account creation by
 requiring users to front a "stake", a given amount donated on behalf of a UFKYC
