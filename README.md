@@ -130,17 +130,14 @@ For a few reasons:
    in a limited way, primarily for the sake of scaring off subpeonas and not
    actually by preventing surreptitous access.  Because by definition a web
    application downloads a fresh set of code each time it runs, they can be
-   sandboxed but not really "open source" without extraneous FSF-approved
-   browser addons. Even if you audited the returned scripts to verify
-   Protonmail wasn't sending the contents of your emails back today, that
-   doesn't mean it won't the next time you visit the site. From a security
-   perspective, there's not really a whole lot of difference between sending
-   new, obfuscated, unreviewed javascript from Protonmail on each run and just
-   downloading a binary when it comes to accessing your data on that site.
-   Whereas, with a command line interface, the code can be GPLv3 licensed and
-   put in a public repository, users can check out specific versions, and at
-   least anticipate that someone would have said something if it curled your
-   keys to a remote server. It's not a perfect remedy, and introduces some new
+   sandboxed, but not really "open sourced" without extraneous FSF-approved
+   browser addons. From a security perspective, there's not really a whole lot
+   of difference between sending new, obfuscated, unreviewed javascript from
+   Protonmail on each run and a strong public promise to keep data secret.
+   With a command line interface, the code can be GPLv3 licensed and put in a
+   public repository, users can check out specific versions, and at least
+   anticipate that someone would have said something if it curled your keys to
+   a remote server. It's not a perfect remedy, and introduces some new
    complications, but it's ultimately the better tradeoff given that we have
    sandboxing covered.
 
@@ -193,7 +190,7 @@ dislike either of those things should go ahead and try:
 ### Manual compilation (it's not as hard as it usually is)
 
 To manually compile, first install [go](https://golang.org). Then either run
-`go install github.com/unofficialkyc-cli`, or simply clone the repository and
+`go install github.com/leonardcyber/unofficialkyc-cli`, or simply clone the repository and
 run `go build`. You should be left with a working CLI called `kycli` in your
 `~/go/bin/` folder or inside the cloned repository, respectively. You can place
 that wherever you like, perhaps in `/usr/bin/`.
