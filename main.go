@@ -31,7 +31,7 @@ import (
 var isInsideSnap = os.Getenv("SNAP") != ""
 
 func validAPIToken(token string) bool {
-	return validation.Validate(token, is.Base64) == nil && len(token) > 8
+	return validation.Validate(token, is.PrintableASCII) == nil && len(token) > 8
 }
 
 func browseTo(url string) error {
@@ -244,8 +244,8 @@ func printHelp() {
     token - Grab a UFKYC token for the domain in your clipboard.
     donate [amount] - Donate to add to your credibility score (and buy some Kenyan kid a malaria net).
     service register - Registers a UFKYC service users will be able to generate.
-    service register_domain [name] - Adds an (unvalidated) domain to your UFKYC service, and starts the validation process.
-    service require_donation [amount] - (Optional) Adds an amount users have to have donated in order to create tokens fro your service.
+    service register_domain [name] - Adds an unvalidated domain to your UFKYC service, and starts the validation process.
+    service require_donation [amount] - (Optional) Adds an amount users have to have donated in order to create tokens for your service.
     `)
 }
 
@@ -410,6 +410,32 @@ func main() {
 							fmt.Println("Your service registration was sucessful, and your service's granted ID is '" + respStr + "'. Assign it some domain names to allow users to generate tokens for it.")
 						}
 					}))
+				case "require_donation":
+					if len(os.Args) != 4 {
+						fmt.Println("You used the wrong number of arguments; this command needs 4.")
+						printHelp()
+					} else {
+						if amount, err := strconv.ParseFloat(strings.TrimSuffix(os.Args[3], "$"), 64); err != nil {
+							fmt.Println("Error parsing donation amount: " + err.Error())
+							printHelp()
+						} else {
+							printErr(withUser(func(user *User) {
+								if resp, err := user.PostForm("/require_donation", url.Values{
+									"amount": []string{strconv.FormatFloat(amount, 'f', 2, 64)},
+								}); err != nil {
+									fmt.Println("Error trying to connect to API:", err)
+								} else if resp.StatusCode != 200 {
+									if b, err := ioutil.ReadAll(resp.Body); err != nil {
+										fmt.Println("API returned the status code " + strconv.Itoa(resp.StatusCode) + ".")
+									} else {
+										fmt.Println("API returned the status code", resp.StatusCode, "and the following response body: "+string(b))
+									}
+								} else {
+									fmt.Printf("New users will now have to donate at least %0.2f$ platform wide in order to start creating tokens for your service.\n", amount)
+								}
+							}))
+						}
+					}
 				case "register_domain":
 					printErr(withUser(func(user *User) {
 						do := func(domain string) {
