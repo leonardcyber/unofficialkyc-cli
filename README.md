@@ -40,18 +40,18 @@ By incorporating UnofficialKYC into their authentication or signup procedures, w
 ### Who am I paying and why? You say most of it's going to charity?
 
 The services registered with UFKYC prevent redundant account creation by
-requiring users to front a "stake", a given amount donated on behalf of a UFKYC
-passport to charity. Users who have donated at or above the amount specified by
-the service they're using are allowed to generate "authentication tokens",
-which, depending on the service, give access to the site or are used as apart
-of the authentication process.
+requiring users to create a "stake", a given amount donated on behalf of a
+UFKYC passport to charity along with a small service fee. Users who have
+donated at or above the amount specified by the service they're using are
+allowed to generate "authentication tokens", which, depending on the service,
+give access to the site or are used as apart of the authentication process.
 
-The beauty of this system is that you can donate the money once, and then
-generate a token for any service that accepts signups at that stake level or
-higher. This means that bans for traditionally porous internet communities can
-finally have "teeth" - regular UFKYC users can sign up for most services with
-no paywall beyond their first, but rulebreakers, shills, and trolls are forced
-to make new UFKYC passports and provide the stake again and again.  At the same
+The beauty of this system is that you can pay the money once, and then generate
+a token for any service that accepts signups at that stake level or higher.
+This means that bans for traditionally porous internet communities can finally
+have "teeth" - regular UFKYC users can sign up for most services with no
+paywall beyond their first, but rulebreakers, shills, and trolls are forced to
+make new UFKYC passports and provide the stake again and again.  At the same
 time, these services will never receive your passport ID, and the tokens you
 generate will only tell the service who you are on their platform. Unlike the
 OAUTH "sign in with google" buttons, sites you use UFKYC to authenticate to
