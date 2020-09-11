@@ -14,9 +14,16 @@ tested.
 
 ## Table of Contents
 
-1. [FAQ](#faq)
-2. [Installation](#installation)
-3. [Support](#support)
+* [FAQ](#faq)
+    * [What is UnofficialKYC?](#what-is-unofficialkyc)
+    * [Who am I paying and why? You say it's going to charity?](#who-am-i-paying-and-why-you-say-its-going-to-charity)
+    * [How does UFKYC's authentication flow work?](#how-does-ufkycs-authentication-flow-work)
+    * [Why did you start by publishing a CLI and not a GUI or web application?](#why-did-you-start-by-publishing-a-cli-and-not-a-gui-or-web-application)
+    * [Why cryptocurrency?](#why-cryptocurrency)
+* [Installation](#installation)
+    * [Snap](#snap)
+    * [Manual compilation (it's not as hard as it usually is)](#manual-compilation-its-not-as-hard-as-it-usually-is)
+* [Support](#support)
 
 ## FAQ
 
