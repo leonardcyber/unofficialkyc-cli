@@ -141,7 +141,7 @@ publish a snapcraft app named "kycli". To install it, after first installing
 [snap](https;//snapcraft.io) (if it's not already available on your
 distribution), run the terminal command:
 
-`snap install kycli`
+`snap install --beta kycli`
 
 And that's it.
 
