@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -458,25 +457,39 @@ func main() {
 							} else {
 								var resp struct {
 									Data struct {
-										Path    string `json:"path"`
-										Content string `json:"content"`
+										PathValidation struct {
+											Path    string `json:"path"`
+											Content string `json:"content"`
+										} `json:"path_validation"`
+										TxtValidation struct {
+											Nonce string `json:"nonce"`
+										} `json:"txt_validation"`
 									} `json:"data"`
 								}
+								fmt.Println(string(b))
 								if err := json.Unmarshal(b, &resp); err != nil {
 									fmt.Println("The API returned with a success, but we were unable to marshal the response. Here is what it sent us, raw: " + spew.Sdump(resp))
 								} else {
-									fmt.Println("Your domain name has been registered.")
-									fmt.Println("In order to validate ownership, you'll need to place a file at the '" + resp.Data.Path + "' path of a web server running on port 80 or 443.")
-									fmt.Println("The file must contain the following nonce: '" + resp.Data.Content + "'")
-									fmt.Println("UFKYC will continually poll that location from the internet until it responds correctly, at which point your domain will be validated.")
-									fmt.Println("If you do not validate ownership within an hour your domain will become unregistered and you'll need to start this process again.")
-									fmt.Println("You can re-run this command to get the above information again from UFKYC.")
+									if resp.Data.PathValidation.Content != "" {
+										fmt.Println("Your domain name has been registered.")
+										fmt.Println("In order to validate ownership, you'll need to place a file at the '" + resp.Data.PathValidation.Path + "' path of a web server running on port 80 or 443.")
+										fmt.Println("The file must contain the following nonce: '" + resp.Data.PathValidation.Content + "'")
+										fmt.Println("UFKYC will continually poll that location from the internet until it responds correctly, at which point your domain will be validated.")
+										fmt.Println("If you do not validate ownership within an hour, your domain will become unregistered and you'll need to start this process again.")
+										fmt.Println("You can re-run this command to get the above information again from UFKYC.")
+									} else if resp.Data.TxtValidation.Nonce != "" {
+										fmt.Println("Your domain name has been registered.")
+										fmt.Println("In order to validate ownership, you'll need make a TXT record at the root domain")
+										fmt.Println("with the contents '" + resp.Data.TxtValidation.Nonce + "'.")
+										fmt.Println("We will continually poll its TXT records until it responds correctly.")
+										fmt.Println("If you do not validate ownership within an hour, your domain will become unregistered and you'll need to start this process again.")
+										fmt.Println("You can re-run this command to get the above information again from UFKYC.")
+									}
 								}
 
 							}
 						}
 						if len(os.Args) == 4 {
-							log.Println("test")
 							if validation.Validate(os.Args[3], is.Domain) != nil || !isRootDomain(os.Args[3]) {
 								fmt.Println("Passed argument is not a valid root domain.")
 							} else {
