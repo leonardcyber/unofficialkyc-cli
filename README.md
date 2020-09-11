@@ -189,11 +189,10 @@ dislike either of those things should go ahead and try:
 
 ### Manual compilation (it's not as hard as it usually is)
 
-To manually compile, first install [go](https://golang.org). Then either run
-`go install github.com/leonardcyber/unofficialkyc-cli`, or simply clone the repository and
-run `go build`. You should be left with a working CLI called `kycli` in your
-`~/go/bin/` folder or inside the cloned repository, respectively. You can place
-that wherever you like, perhaps in `/usr/bin/`.
+To manually compile, first install [go](https://golang.org). Simply clone the
+repository and run `go build`. You should be left with a working CLI called
+`kycli` in your inside the cloned repository, respectively. You can place that
+wherever you like, perhaps in `/usr/bin/`.
 
 ## Support
 
