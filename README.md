@@ -12,6 +12,12 @@ bugs you find or ambiguous setup steps. We're happy to help you manually
 install and work through issues you find using it so that it will begin to get
 tested.
 
+## Table of Contents
+
+1. [FAQ](#faq)
+2. [Installation](#installation)
+3. [Support](#support)
+
 ## FAQ
 
 ### What is UnofficialKYC?
@@ -183,7 +189,7 @@ run `go build`. You should be left with a working CLI called `kycli` in your
 `~/go/bin/` folder or inside the cloned repository, respectively. You can place
 that wherever you like, perhaps in `/usr/bin/`.
 
----
+## Support
 
 More documentation is coming. For more information on what UFKYC does, how to
 use it, or how to build it into your service, we have a [Keybase
