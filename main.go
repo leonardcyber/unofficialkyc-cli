@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,10 +26,13 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 var isInsideSnap = os.Getenv("SNAP") != ""
+
+func validAPIToken(token string) bool {
+	return validation.Validate(token, is.Base64) == nil && len(token) > 8
+}
 
 func browseTo(url string) error {
 	var cmd string
@@ -51,8 +55,6 @@ func browseTo(url string) error {
 	}
 }
 
-var db *gorm.DB
-
 var dbpath string
 
 func withDBPath(f func(path string)) error {
@@ -66,6 +68,7 @@ func withDBPath(f func(path string)) error {
 	} else {
 		dbpath = user.HomeDir + "/.local/share/unofficialkyc/"
 	}
+	f(dbpath + "local.db")
 	return nil
 }
 
@@ -80,6 +83,8 @@ func withDBPathErr(f func(path string) error) error {
 	return ranErr
 }
 
+var db *gorm.DB
+
 func withDB(f func(*gorm.DB)) error {
 	if db == nil {
 		w := errWrapper("error initializing local db")
@@ -87,16 +92,15 @@ func withDB(f func(*gorm.DB)) error {
 			var err error
 			if db, err = gorm.Open(sqlite.Open(path), &gorm.Config{}); err != nil {
 				return w(err, "error opening local db")
-			} else if err := db.AutoMigrate(&User{}); err != nil {
+			} else if err = db.AutoMigrate(&User{}); err != nil {
 				return w(err, "error migrating user table for local db")
-			} else if err := db.AutoMigrate(&Config{}); err != nil {
+			} else if err = db.AutoMigrate(&Config{}); err != nil {
 				return w(err, "error migrating config table for local db")
 			}
 			return nil
 		}); err != nil {
 			return w(err)
 		}
-		db.Logger.LogMode(logger.Info)
 	}
 	f(db)
 	return nil
@@ -157,6 +161,8 @@ func withUser(f func(user *User)) error {
 				return errors.New("Incorrect username or password")
 			} else if resp.StatusCode != 200 {
 				return w(errors.New(string(b)), "api returned non-200 response code when trying to get a new API token, along with the following body")
+			} else if token := string(b); !validAPIToken(token) {
+				return w(errors.New(string(b)), "the api returned a success status code, but the following, structurally invalid api token")
 			} else {
 				conf.User.Name = username
 				conf.User.ApiToken = strings.TrimSpace(string(b))
@@ -316,13 +322,15 @@ func main() {
 						fmt.Println("User already exists; try a different username.")
 					} else if resp.StatusCode != http.StatusOK {
 						fmt.Println("received non-200 status code and the following response body:", responseStr)
+					} else if token := string(b); !validAPIToken(token) {
+						fmt.Println("the api returned a success status code, but the following, structurally invalid api token:", token)
 					} else {
 						conf.User = User{
 							Name:     username,
-							ApiToken: responseStr,
+							ApiToken: token,
 						}
 						if err := withDBErr(func(db *gorm.DB) error {
-							return db.Save(&conf.User).Error
+							return db.Save(conf).Error
 						}); err != nil {
 							fmt.Println("Registered the user, but there was a problem saving them to the database: ", err)
 						}
@@ -441,6 +449,7 @@ func main() {
 							}
 						}
 						if len(os.Args) == 4 {
+							log.Println("test")
 							if validation.Validate(os.Args[3], is.Domain) != nil || !isRootDomain(os.Args[3]) {
 								fmt.Println("Passed argument is not a valid root domain.")
 							} else {
@@ -451,8 +460,8 @@ func main() {
 							for {
 								fmt.Print("Enter domain: ")
 								fmt.Scanln(&domain)
-								if validation.Validate(os.Args[3], is.Domain) != nil || !isRootDomain(os.Args[3]) {
-									fmt.Println("Entered domain was invalid or not a root domain; try again.")
+								if validation.Validate(domain, is.Domain) != nil || !isRootDomain(domain) {
+									fmt.Println("Entry was not a valid root domain; try again.")
 								} else {
 									var confirm string
 									fmt.Print("Confirm: ")

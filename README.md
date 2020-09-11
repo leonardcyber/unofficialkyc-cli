@@ -132,9 +132,9 @@ for Linux or compile yourself, which should also 'just work', as the CLI has no
 outside dependencies besides a web browser that won't be transparently brought
 in during the golang compilation process.
 
-### Snapcraft
+### Snap
 
-Snap is not as bad as you may have been led to believe. At the moment we
+Snap may not be as bad as you have been led to believe. At the moment we
 publish a snapcraft app named "kycli". To install it, after first installing
 [snap](https;//snapcraft.io) (if it's not already available on your
 distribution), run the terminal command:
@@ -145,7 +145,7 @@ And that's it.
 
 The snap works on more distributions than we could ever expect to suport
 directly, updates automatically, provides a standard environment for the thing
-to run in and for us to test, it's barely bigger than the default binary, and
+to run in and for us to test, is barely bigger than the default binary, and
 allows us to somewhat securely sandbox it from the rest of your operating
 system without resorting to docker containers.  It's too much of a quick win
 for us to start writing .debs and .emerges and .aurs by hand, when we could be
@@ -165,7 +165,7 @@ that wherever you like, perhaps in `/usr/bin/`.
 
 ---
 
-For more information on what UFKYC does, how to use it, or how to build it into
-your service, check out [unofficialkyc.com](https://unofficialkyc.com) (If it
-is up quite yet). If you want to talk to the devs directly, we have a [Keybase
-team](https://keybase.io/team/unofficialkyc).
+More documentation is coming. For more information on what UFKYC does, how to
+use it, or how to build it into your service, we have a [Keybase
+team](https://keybase.io/team/unofficialkyc) in which we are almost always
+active and can answer your questions.
