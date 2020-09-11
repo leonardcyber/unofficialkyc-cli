@@ -245,6 +245,7 @@ func printHelp() {
     donate [amount] - Donate to add to your credibility score (and buy some Kenyan kid a malaria net).
     service register - Registers a UFKYC service users will be able to generate.
     service register_domain [name] - Adds an (unvalidated) domain to your UFKYC service, and starts the validation process.
+    service require_donation [amount] - (Optional) Adds an amount users have to have donated in order to create tokens fro your service.
     `)
 }
 
@@ -484,7 +485,11 @@ func main() {
 		case "clear":
 			dangerous(func() {
 				printErr(withDBPathErr(func(path string) error {
-					return os.Remove(path)
+					if err := os.Remove(path); err != os.ErrNotExist {
+						return err
+					} else {
+						return nil
+					}
 				}))
 			})
 		case "token":

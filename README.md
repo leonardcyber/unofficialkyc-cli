@@ -60,7 +60,7 @@ same account by comparing email addresses.
 
 Because the funds are an arbitrary "proof-of-stake", and exist to enable the
 service as much to financially support UFKYC, only 10% of stakes users provide
-are actually go to the UFKYC devs. The other 90% are donated to
+go to the UFKYC devs. The other 90% are donated to
 [GiveDirectly](https://www.givedirectly.org). GiveDirectly is a top-rated
 nonprofit foundation that provides electronic cash transfers to the world's
 poorest. GiveDirectly has been a [GiveWell](https://www.givewell.org) top rated
@@ -73,24 +73,37 @@ There are two main use scenarios for UFKYC. The first is as a signup procedure,
 where users generate tokens for sites once during the account creation process.
 The second is as a logon procedure, where users generate tokens each time they
 log into a website as a primary or second factor authentication mechanism. Both
-scenarios involve the same core procedure:
+scenarios involve the same steps:
 
-1. A service operator registers their service with UFKYC, and adds and validates some domains to the service.
-2. The service operator modifies a login, landing, or signup page to include a form for user tokens.
+1. A service operator registers their service with `kycli service register`, and is given a
+   service ID.
+2. The service operator and attaches and validates some domains to their
+   service via the `kycli service register_domain` command, which will ensure
+   users who generate tokens for their domain will have their service ID as an
+   audience.
+2. The service operator modifies a login, landing, or signup page to include a
+   form for user tokens, along with perhaps a link to
+   [unofficialkyc.com](https://unofficialkyc.com) as explanation.
 3. A user sees the option to authenticate/signup with a UFKYC token and copies
-   the root domain shown, asks the CLI for a token with `kycli token`, and
-   pastes the (now copied) token into the field.
-4. The service accepts the token, verifies its signature, audience, and
-   subject, persists the subject in a database or associates it with an
-   identity on the service, and proceeds with account creation or login.
+   the root domain from their browser, asks the CLI for a token with `kycli
+   token`, and submits it kycli passed back into the clipboad. This
+   [PASETO](https://paseto.io/) token passed to the service includes the
+   service ID given during service registration, a new, service-specific "subject" identifier
+   for that user,
+4. The service receives the token, and verifies its signature, audience, and
+   subject. Then it persists the token's subject in a database or associates it
+   with an identity on the service so that the same user can't sign up twice.
+   Now that the user has been authenticated (and inadvertently proven they
+   aren't being phished), the service can proceed with account creation or
+   login.
 
 ### Why did you start by publishing a CLI and not a GUI or web application?
 
 For a few reasons:
-1. It's simply easier to start by developing a CLI that interfaces with an API
-   than a GUI desktop application that does the same, or a standalone web
-   application, because we don't have to worry about graphic design.
-2. We (Leonard Cyber) developed this product partly for our personal use
+1. It's simply easier for us to start by developing a CLI that interfaces with
+   an API than a GUI desktop application that does the same, or a standalone
+   web application, because we don't have to worry about graphic design.
+2. Leonard Cyber developed this product partly for our personal use
    administering Leonard's online computer hacking exam, and our users are
    (hopefully) comfortable with CLIs.
 3. CLIs are badass.
@@ -101,21 +114,27 @@ For a few reasons:
    browsers are perfectly capable of performing encryption, contrary to the
    aspirations of Protonmail or Mega.nz, they can only assure confidentiality
    in a limited way, primarily for the sake of scaring off subpeonas and not
-   actually preventing surreptitous access.  Because by definition a web
-   application downloads a fresh set of code each time it runs, even if you
-   audited the javascript to verify Protonmail wasn't sending the contents of
-   your emails back today, you can't be sure it won't the next time you visit
-   the site. Whereas, with a command line interface, the code can be GPLv3
-   licensed and open-sourced, users can check out specific versions, and users
-   can install through software repositories that have people look over the
-   code first. It's not a perfect remedy, and introduces some new
-   complications, but it's ultimately the better tradeoff from a security
-   perspective.
+   actually by preventing surreptitous access.  Because by definition a web
+   application downloads a fresh set of code each time it runs, they can be
+   sandboxed but not really "open source" without extraneous FSF-approved
+   browser addons. Even if you audited the returned scripts to verify
+   Protonmail wasn't sending the contents of your emails back today, that
+   doesn't mean it won't the next time you visit the site. From a security
+   perspective, there's not really a whole lot of difference between sending
+   new, obfuscated, unreviewed javascript from Protonmail on each run and just
+   downloading a binary when it comes to accessing your data on that site.
+   Whereas, with a command line interface, the code can be GPLv3 licensed and
+   put in a public repository, users can check out specific versions, and at
+   least anticipate that someone would have said something if it curled your
+   keys to a remote server. It's not a perfect remedy, and introduces some new
+   complications, but it's ultimately the better tradeoff given that we have
+   sandboxing covered.
 
 A web app on unofficialkyc.com is being developed that will eventually
-supplement this program, and in the long term we're looking at making a desktop
-GUI, too. We expect the web app should be finished by the end of September, but
-make no promises.
+supplement this program in case you don't agree or don't want to install
+anything, and in the long term we're looking at making a desktop GUI, too. We
+expect the web app should be finished by the end of September, but make no
+promises.
 
 ### Why cryptocurrency?
 
