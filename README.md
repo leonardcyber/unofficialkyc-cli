@@ -1,4 +1,4 @@
-# UnofficialKYC Command Line Interface
+# unofficialKYC Command Line Interface
 
 This repository houses the GPLv3 licensed UnofficialKYC CLI. Users can use this
 application to create tokens, accounts, and services on the UnofficialKYC
@@ -16,7 +16,7 @@ tested.
 <!-- vim-markdown-toc GFM -->
 
 * [FAQ](#faq)
-    * [What is UnofficialKYC?](#what-is-unofficialkyc)
+    * [What is unofficialKYC?](#what-is-unofficialkyc)
     * [Who am I paying and why? You say it's going to charity?](#who-am-i-paying-and-why-you-say-its-going-to-charity)
     * [How does UFKYC's authentication flow work?](#how-does-ufkycs-authentication-flow-work)
     * [Why did you start by publishing a CLI and not a GUI or web application?](#why-did-you-start-by-publishing-a-cli-and-not-a-gui-or-web-application)
@@ -29,9 +29,9 @@ tested.
 <!-- vim-markdown-toc -->
 ## FAQ
 
-### What is UnofficialKYC?
+### What is unofficialKYC?
 
-UnofficialKYC is a platform for users to link their accounts on many online
+unofficialKYC is a platform for users to link their accounts on many online
 services to a single charitable donation, without having to share their
 disclose their real life identity or shared identity between those services. In
 doing this, UFKYC provides a way for companies to penalize the creation of many
