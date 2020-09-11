@@ -13,6 +13,7 @@ install and work through issues you find using it so that it will begin to get
 tested.
 
 ## Table of Contents
+<!-- vim-markdown-toc GFM -->
 
 * [FAQ](#faq)
     * [What is UnofficialKYC?](#what-is-unofficialkyc)
@@ -25,6 +26,7 @@ tested.
     * [Manual compilation (it's not as hard as it usually is)](#manual-compilation-its-not-as-hard-as-it-usually-is)
 * [Support](#support)
 
+<!-- vim-markdown-toc -->
 ## FAQ
 
 ### What is UnofficialKYC?
