@@ -1,6 +1,6 @@
 #!/bin/bash
 deploy () {
-    snapcraft remote-build --launchpad-accept-public-upload --build-on=amd64 &&  \
+    snapcraft remote-build --launchpad-user dvlc --launchpad-accept-public-upload --build-on=amd64 &&  \
         snapcraft upload --release="${1}" ./*.snap
 }
 
