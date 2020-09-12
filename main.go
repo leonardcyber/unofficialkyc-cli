@@ -252,8 +252,9 @@ func printHelp() {
 func dangerous(f func()) {
 	if os.Getenv("DANGEROUS") != "TRUE" {
 		fmt.Println("You don't have the DANGEROUS=TRUE environment variable set. This command requires it; please don't use api_switch unless you are either a UFKYC developer or want to get owned.")
+	} else {
+		f()
 	}
-	f()
 }
 
 //Only braindead monkeys whine about programs putting a lot of code in main().
