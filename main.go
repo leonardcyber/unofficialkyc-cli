@@ -374,8 +374,12 @@ func main() {
 						} else if err := browseTo(url); err != nil {
 							fmt.Println("An error occured opening the payment URL: ", err)
 							fmt.Println("Please attempt to go to", url, " in whatever browser you have available manually to finish your payment.")
+							fmt.Println("Your payment should be confirmed by the network credited within ~10 minutes,")
+							fmt.Println("depending on fees.")
 						} else {
-							fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab. Your donation will be confirmed shortly thereafter.")
+							fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab.")
+							fmt.Println("Your payment should be confirmed by the network within ~10 minutes,")
+							fmt.Println("depending on fees.")
 						}
 					}))
 				}
