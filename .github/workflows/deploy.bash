@@ -9,5 +9,5 @@ if [[ ${REF} == "refs/heads/development" ]]; then
 elif [[ "${REF}" == "refs/heads/staging" ]]; then
     deploy beta
 elif [[ "${REF}" == "refs/heads/master" ]]; then
-    deploy candidate
+    deploy stable
 fi
