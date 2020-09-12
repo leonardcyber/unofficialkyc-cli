@@ -1,6 +1,7 @@
 #!/bin/bash
 deploy () {
-    snapcraft remote-build --build-on=amd64 && snapcraft upload --release="${1}" ./*.snap
+    snapcraft remote-build --launchpad-accept-public-upload --build-on=amd64 &&  \
+        snapcraft upload --release="${1}" ./*.snap
 }
 
 if [[ ${REF} == "refs/heads/development" ]]; then
