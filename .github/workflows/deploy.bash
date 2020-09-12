@@ -1,6 +1,6 @@
 #!/bin/bash
 deploy () {
-    snapcraft --use-lxd && \
+    sg lxd -c 'snapcraft --use-lxd' && \
         snapcraft upload --release="${1}" ./*.snap
 }
 
