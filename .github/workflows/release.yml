@@ -14,6 +14,7 @@ jobs:
         uses: samuelmeuli/action-snapcraft@v1
         with:
             snapcraft_token: ${{ secrets.snapcraft_token }}
+            use_lxd: true
 
       - name: Deploy
         env:
