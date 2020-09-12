@@ -10,8 +10,7 @@ confinement: strict
 parts:
     kycli:
         plugin: go
-        source: .
-        source-type: git
+        source: ./src
         build-packages: 
             - build-essential
         stage-packages:
