@@ -239,6 +239,7 @@ func secureTermRead() (string, error) {
 func printHelp() {
 	fmt.Println(`
     List of commands:
+    whoami - Prints some user information.
     register - Registers a new UFKYC passport.
     token - Grab a UFKYC token for the domain in your clipboard.
     donate [amount] - Donate to add to your credibility score (and buy some Kenyan kid a malaria net).
@@ -268,6 +269,14 @@ func main() {
 	} else {
 		command := os.Args[1]
 		switch command {
+		case "whoami":
+			printErr(withConfig(func(conf *Config) {
+				if conf.User.Name == "" {
+					fmt.Println("You're not logged in yet.")
+				} else {
+					fmt.Println("You're logged in as user '" + conf.User.Name + "'")
+				}
+			}))
 		case "api_switch":
 			dangerous(func() {
 				if len(os.Args) == 3 {

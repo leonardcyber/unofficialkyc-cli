@@ -1,6 +1,6 @@
 # unofficialKYC Command Line Interface
 
-This repository houses the GPLv3 licensed UnofficialKYC CLI. Users can use this
+This repository houses the GPLv3 licensed UnofficialKYC CLI. People can use this
 application to create tokens, accounts, and services on the UnofficialKYC
 platform, as well as increase their UFKYC credibility scores by donating
 cryptocurrency to impoverished African children.
