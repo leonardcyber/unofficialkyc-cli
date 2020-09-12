@@ -3,7 +3,7 @@ name: Publish Snapcraft App
 on: push
 
 jobs:
-  my-job:
+  publish-snapcraft-app:
     runs-on: ubuntu-latest
 
     steps:
