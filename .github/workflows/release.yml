@@ -1,0 +1,21 @@
+name: Publish Snapcraft App
+
+on: push
+
+jobs:
+  my-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v1
+        with:
+            snapcraft_token: ${{ secrets.snapcraft_token }}
+
+      - name: Deploy
+        env:
+            REF: ${{ github.ref }}
+        run: bash ./.github/workflows/deploy.bash
