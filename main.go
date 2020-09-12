@@ -56,7 +56,7 @@ func browseTo(url string) error {
 
 var dbpath string
 
-func withDBPath(f func(path string)) error {
+func withDBPath(f func(path string), e func(err error)) error {
 	w := errWrapper("error grabbing database path")
 	if isInsideSnap {
 		dbpath = os.Getenv("SNAP_USER_DATA") + "/"
@@ -71,48 +71,25 @@ func withDBPath(f func(path string)) error {
 	return nil
 }
 
-//I wish golang had better typing :/
-func withDBPathErr(f func(path string) error) error {
-	var ranErr error
-	if err := withDBPath(func(path string) {
-		ranErr = f(path)
-	}); err != nil {
-		return err
-	}
-	return ranErr
-}
-
 var db *gorm.DB
 
-func withDB(f func(*gorm.DB)) error {
+func withDB(f func(*gorm.DB), e func(err error)) {
 	if db == nil {
 		w := errWrapper("error initializing local db")
-		if err := withDBPathErr(func(path string) error {
+		withDBPath(func(path string) {
 			var err error
 			if db, err = gorm.Open(sqlite.Open(path), &gorm.Config{}); err != nil {
-				return w(err, "error opening local db")
+				e(w(err, "error opening local db"))
 			} else if err = db.AutoMigrate(&User{}); err != nil {
-				return w(err, "error migrating user table for local db")
+				e(w(err, "error migrating user table for local db"))
 			} else if err = db.AutoMigrate(&Config{}); err != nil {
-				return w(err, "error migrating config table for local db")
+				e(w(err, "error migrating config table for local db"))
 			}
-			return nil
-		}); err != nil {
-			return w(err)
-		}
+		}, func(err error) {
+			e(w(err))
+		})
 	}
 	f(db)
-	return nil
-}
-
-func withDBErr(f func(*gorm.DB) error) error {
-	var ret error
-	if err := withDB(func(db *gorm.DB) {
-		ret = f(db)
-	}); err != nil {
-		return err
-	}
-	return ret
 }
 
 type User struct {
@@ -123,24 +100,27 @@ type User struct {
 
 func (u *User) PostForm(uri string, vals url.Values) (*http.Response, error) {
 	var ret *http.Response
-	err := withConfigErr(
-		func(conf *Config) error {
+	var retErr error
+	withConfig(
+		func(conf *Config) {
 			if req, err := http.NewRequest("POST", conf.ApiEndpoint+uri, bytes.NewBuffer([]byte(vals.Encode()))); err != nil {
-				return err
+				retErr = err
 			} else {
 				req.Header.Set("Authorization", u.ApiToken)
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-				ret, err = http.DefaultClient.Do(req)
-				return err
+				ret, retErr = http.DefaultClient.Do(req)
 			}
 		},
+		func(err error) {
+			retErr = err
+		},
 	)
-	return ret, err
+	return ret, retErr
 }
 
-func withUser(f func(user *User)) error {
-	return withConfigErr(func(conf *Config) error {
-		w := errWrapper("error grabbing logged in user from db")
+func withUser(f func(user *User), e func(err error)) {
+	w := errWrapper("error grabbing logged in user from db")
+	withConfig(func(conf *Config) {
 		if conf.User.Name == "" {
 			fmt.Println("Haven't authenticated yet; please log in.")
 			fmt.Print("Username: ")
@@ -148,35 +128,36 @@ func withUser(f func(user *User)) error {
 			fmt.Scanln(&username)
 			fmt.Print("Password: ")
 			if password, err := secureTermRead(); err != nil {
-				return w(err, "error reading password from terminal")
+				e(w(err, "error reading password from terminal"))
 			} else if resp, err := http.PostForm(conf.ApiEndpoint+"/new_api_token", url.Values{
 				"username": []string{username},
 				"password": []string{password},
 			}); err != nil {
-				return w(err, "error requesting refresh token from api")
+				e(w(err, "error requesting refresh token from api"))
 			} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
-				return w(err, "error reading api login response body")
+				e(w(err, "error reading api login response body"))
 			} else if resp.StatusCode == http.StatusUnauthorized {
-				return errors.New("Incorrect username or password")
+				e(errors.New("Incorrect username or password"))
 			} else if resp.StatusCode != 200 {
-				return w(errors.New(string(b)), "api returned non-200 response code when trying to get a new API token, along with the following body")
+				e(w(errors.New(string(b)), "api returned non-200 response code when trying to get a new API token, along with the following body"))
 			} else if token := string(b); !validAPIToken(token) {
-				return w(errors.New(string(b)), "the api returned a success status code, but the following, structurally invalid api token")
+				e(w(errors.New(string(b)), "the api returned a success status code, but the following, structurally invalid api token"))
 			} else {
 				conf.User.Name = username
 				conf.User.ApiToken = strings.TrimSpace(string(b))
 				if err := db.Save(&conf.User).Error; err != nil {
-					return w(err, "error saving user into configuration")
+					e(w(err, "error saving user into configuration"))
 				} else {
 					conf.UserID = conf.User.ID
 					if err := db.Save(&conf).Error; err != nil {
-						return w(err, "error saving user into configuration")
+						e(w(err, "error saving user into configuration"))
 					}
 				}
 			}
 		}
 		f(&conf.User)
-		return nil
+	}, func(err error) {
+		e(w(err))
 	})
 }
 
@@ -189,42 +170,33 @@ type Config struct {
 
 var conf *Config
 
-func withConfig(f func(*Config)) error {
+func withConfig(f func(*Config), e func(err error)) {
 	if conf == nil {
 		w := errWrapper("error getting config from db")
-		if err := withDBErr(
-			func(db *gorm.DB) error {
+		withDB(
+			func(db *gorm.DB) {
 				var configs []Config
 				if err := db.Preload("User").Find(&configs).Error; err != nil {
-					return err
+					e(w(err))
 				} else if len(configs) == 0 {
 					conf = &Config{
 						ApiEndpoint: "https://unofficialkyc.com/api/v1",
 					}
-					return db.Save(conf).Error
+					if err := db.Save(conf).Error; err != nil {
+						e(w(err))
+					}
 				} else if len(configs) == 1 {
 					conf = &configs[0]
-					return nil
 				} else {
-					return errors.New("You have multiple configs in your db. You should probably delete it. It's in local/share/unofficialkyc")
+					e(w(errors.New("You have multiple configs in your db. You should probably delete it. It's in local/share/unofficialkyc")))
 				}
 			},
-		); err != nil {
-			return w(err)
-		}
+			func(err error) {
+				e(w(err))
+			},
+		)
 	}
 	f(conf)
-	return nil
-}
-
-func withConfigErr(f func(*Config) error) error {
-	var ret error
-	if err := withConfig(func(conf *Config) {
-		ret = f(conf)
-	}); err != nil {
-		return err
-	}
-	return ret
 }
 
 func secureTermRead() (string, error) {
@@ -271,33 +243,37 @@ func main() {
 		command := os.Args[1]
 		switch command {
 		case "whoami":
-			printErr(withConfig(func(conf *Config) {
+			withConfig(func(conf *Config) {
 				if conf.User.Name == "" {
 					fmt.Println("You're not logged in yet.")
 				} else {
 					fmt.Println("You're logged in as user '" + conf.User.Name + "'")
 				}
-			}))
+			}, func(err error) {
+				fmt.Println("Couldn't grab user from db:", err)
+			})
 		case "api_switch":
 			dangerous(func() {
 				if len(os.Args) == 3 {
 					if !strings.HasPrefix(os.Args[2], "http") || validation.Validate(os.Args[2], is.URL) != nil {
 						fmt.Println("Passed argument is not a valid URL.")
 					} else {
-						printErr(withConfig(func(config *Config) {
+						withConfig(func(config *Config) {
 							config.ApiEndpoint = os.Args[2]
 							if err := db.Save(config).Error; err != nil {
 								fmt.Println("Error saving new API endpoint into database:", err)
 							} else {
 								fmt.Println("All your commands will now contact", os.Args[2], "for api requests.")
 							}
-						}))
+						}, func(err error) {
+							fmt.Println("Couldn't switch apis:", err)
+						})
 					}
 				}
 			})
 		case "register":
 			//We need the config so we can save the user and also so that we can know what endpoint to contact
-			printErr(withConfig(func(conf *Config) {
+			withConfig(func(conf *Config) {
 				if conf.User.Name != "" {
 					fmt.Println("You have already logged in as user '" + conf.User.Name + "'.")
 				} else {
@@ -339,14 +315,18 @@ func main() {
 							Name:     username,
 							ApiToken: token,
 						}
-						if err := withDBErr(func(db *gorm.DB) error {
-							return db.Save(conf).Error
-						}); err != nil {
-							fmt.Println("Registered the user, but there was a problem saving them to the database: ", err)
-						}
+						withDB(func(db *gorm.DB) {
+							if err := db.Save(conf).Error; err != nil {
+								fmt.Println("Registered the user, but there was a problem saving them to the database: ", err)
+							}
+						}, func(err error) {
+							fmt.Println("Registered the user, but there was a problem accessing the database: ", err)
+						})
 					}
 				}
-			}))
+			}, func(err error) {
+				fmt.Println("Couldn't start registering user:", err)
+			})
 		case "donate":
 			var amount float64
 			philanthropize := func() {
@@ -363,7 +343,7 @@ func main() {
 							break
 						}
 					}
-					printErr(withUser(func(user *User) {
+					withUser(func(user *User) {
 						if resp, err := user.PostForm("/donate", url.Values{
 							"amount":         []string{strconv.FormatFloat(amount, 'f', 5, 64)},
 							"payment_vendor": []string{"globee"},
@@ -391,7 +371,9 @@ func main() {
 							fmt.Println("Your payment should be confirmed by the network within ~10 minutes,")
 							fmt.Println("depending on fees.")
 						}
-					}))
+					}, func(err error) {
+						fmt.Println("Couldn't begin donation process:", err)
+					})
 				}
 			}
 			if len(os.Args) < 3 {
@@ -416,7 +398,7 @@ func main() {
 			} else {
 				switch os.Args[2] {
 				case "register":
-					printErr(withUser(func(user *User) {
+					withUser(func(user *User) {
 						if resp, err := user.PostForm("/register_service", url.Values{}); err != nil {
 							fmt.Println("Error encountered while contacting api:", err)
 						} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
@@ -426,7 +408,9 @@ func main() {
 						} else {
 							fmt.Println("Your service registration was sucessful, and your service's granted ID is '" + respStr + "'. Assign it some domain names to allow users to generate tokens for it.")
 						}
-					}))
+					}, func(err error) {
+						fmt.Println("Couldn't begin service registration process:", err)
+					})
 				case "require_donation":
 					if len(os.Args) != 4 {
 						fmt.Println("You used the wrong number of arguments; this command needs 4.")
@@ -436,7 +420,7 @@ func main() {
 							fmt.Println("Error parsing donation amount: " + err.Error())
 							printHelp()
 						} else {
-							printErr(withUser(func(user *User) {
+							withUser(func(user *User) {
 								if resp, err := user.PostForm("/require_donation", url.Values{
 									"amount": []string{strconv.FormatFloat(amount, 'f', 2, 64)},
 								}); err != nil {
@@ -450,11 +434,13 @@ func main() {
 								} else {
 									fmt.Printf("New users will now have to donate at least %0.2f$ platform wide in order to start creating tokens for your service.\n", amount)
 								}
-							}))
+							}, func(err error) {
+								fmt.Println("Couldn't grab credentials to set donation requirement with:", err)
+							})
 						}
 					}
 				case "register_domain":
-					printErr(withUser(func(user *User) {
+					withUser(func(user *User) {
 						do := func(domain string) {
 							if resp, err := user.PostForm("/register_service_domain", url.Values{
 								"domain_name": []string{domain},
@@ -533,7 +519,9 @@ func main() {
 							}
 							do(domain)
 						}
-					}))
+					}, func(err error) {
+						fmt.Println("Couldn't begin domain name association process:", err)
+					})
 				default:
 					fmt.Println("Subcommand unrecognized.")
 					printHelp()
@@ -541,16 +529,16 @@ func main() {
 			}
 		case "clear":
 			dangerous(func() {
-				printErr(withDBPathErr(func(path string) error {
+				withDBPath(func(path string) {
 					if err := os.Remove(path); err != os.ErrNotExist {
-						return err
-					} else {
-						return nil
+						fmt.Println("Couldn't remove database:", err)
 					}
-				}))
+				}, func(err error) {
+					fmt.Println("Couldn't find the path to the database:", err)
+				})
 			})
 		case "token":
-			printErr(withUser(func(user *User) {
+			withUser(func(user *User) {
 				if clipboard.Unsupported {
 					fmt.Println("Sorry, clipboard functionality was not found for your current running environment.")
 					if runtime.GOOS == "linux" {
@@ -579,7 +567,9 @@ func main() {
 						}
 					}
 				}
-			}))
+			}, func(err error) {
+				fmt.Println("Couldn't grab UFKYC credentials to request token with:", err)
+			})
 		default:
 			fmt.Println("Command not recognized.")
 			printHelp()
