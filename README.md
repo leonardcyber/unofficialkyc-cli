@@ -1,5 +1,7 @@
 # unofficialKYC Command Line Interface
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/kycli)
+
 This repository houses the GPLv3 licensed UnofficialKYC CLI. People can use this
 application to create tokens, accounts, and services on the UnofficialKYC
 platform, as well as increase their UFKYC credibility scores by donating
