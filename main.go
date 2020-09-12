@@ -56,19 +56,18 @@ func browseTo(url string) error {
 
 var dbpath string
 
-func withDBPath(f func(path string), e func(err error)) error {
+func withDBPath(f func(path string), e func(err error)) {
 	w := errWrapper("error grabbing database path")
 	if isInsideSnap {
 		dbpath = os.Getenv("SNAP_USER_DATA") + "/"
 	} else if user, err := user.Current(); err != nil {
-		return w(err, "couldn't grab the running user")
+		e(w(err, "couldn't grab the running user"))
 	} else if runtime.GOOS == "windows" {
 		dbpath = user.HomeDir + `\AppData\Roaming\unofficialkyc\`
 	} else {
 		dbpath = user.HomeDir + "/.local/share/unofficialkyc/"
 	}
 	f(dbpath + "local.db")
-	return nil
 }
 
 var db *gorm.DB
