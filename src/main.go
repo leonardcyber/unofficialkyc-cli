@@ -213,7 +213,7 @@ func printHelp() {
     whoami - Prints some user information.
     register - Registers a new UFKYC passport.
     token - Grab a UFKYC token for the domain in your clipboard.
-    donate [amount] - Donate to add to your credibility score (and buy some Kenyan kid a malaria net).
+    donate (fiat|crypto) [amount] - Donate to add to your credibility score (and buy some Kenyan kid a malaria net).
     service register - Registers a UFKYC service users will be able to generate.
     service register_domain [name] - Adds an unvalidated domain to your UFKYC service, and starts the validation process.
     service require_donation [amount] - (Optional) Adds an amount users have to have donated in order to create tokens for your service.
@@ -328,47 +328,84 @@ func main() {
 			})
 		case "donate":
 			var amount float64
+			var method string
 			philanthropize := func() {
-				if amount < 10 {
-					fmt.Println("The payment processor we use only accepts payments of ten or more dollars. Sorry.")
+				if amount < 10 && method == "crypto" {
+					fmt.Println("The cryptocurrency payment processor we use only accepts payments of ten or more dollars. Sorry.")
 				} else {
-					fmt.Println("Enter an email address to be associated with the payment, in case of disputes. You may use a tempmail if desired:")
-					var email string
-					for {
-						fmt.Scanln(&email)
-						if err := validation.Validate(email, is.Email); err != nil || strings.TrimSpace(email) == "" {
-							fmt.Println("Email entered was invalid; try again:")
-						} else {
-							break
-						}
-					}
 					withUser(func(user *User) {
-						if resp, err := user.PostForm("/donate", url.Values{
-							"amount":         []string{strconv.FormatFloat(amount, 'f', 5, 64)},
-							"payment_vendor": []string{"globee"},
-							"email":          []string{email},
-						}); err != nil {
-							fmt.Println("Error contacting API (no payment was made):", err)
-						} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
-							fmt.Println("Error reading API response (no payment was made):", err)
-						} else if resp.StatusCode != http.StatusOK {
-							fmt.Println("API returned with an error (no payment was made) and the following response body:", string(b))
-						} else if url := strings.TrimSpace(string(b)); validation.Validate(url, is.URL) != nil {
-							fmt.Println("Strange; the API returned a non-url to browse to to continue payment, but delivered an OK status code. Here was the URL:")
-							fmt.Println(url)
-						} else if isInsideSnap {
-							clipboard.WriteAll(url)
-							fmt.Println("Please browse to the URL pasted into your clipboard and finish your cryptocurrency payment.")
-							fmt.Println("Your donation will be confirmed shortly therafter.")
-						} else if err := browseTo(url); err != nil {
-							fmt.Println("An error occured opening the payment URL: ", err)
-							fmt.Println("Please attempt to go to", url, " in whatever browser you have available manually to finish your payment.")
-							fmt.Println("Your payment should be confirmed by the network credited within ~10 minutes,")
-							fmt.Println("depending on fees.")
-						} else {
-							fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab.")
-							fmt.Println("Your payment should be confirmed by the network within ~10 minutes,")
-							fmt.Println("depending on fees.")
+						//TODO: It'd probably be best if we consolidated these methods somehow, but also seems like meme-DRY-compressionism
+						if method == "fiat" {
+							if resp, err := user.PostForm("/donate", url.Values{
+								"amount":         []string{strconv.FormatFloat(amount, 'f', 5, 64)},
+								"payment_vendor": []string{"stripe"},
+							}); err != nil {
+								fmt.Println("Error contacting API (no payment was made):", err)
+							} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
+								fmt.Println("Error reading API response (no payment was made):", err)
+							} else if resp.StatusCode != http.StatusOK {
+								fmt.Println("API returned with an error (no payment was made) and the following response body:", string(b))
+							} else if url := strings.TrimSpace(string(b)); validation.Validate(url, is.URL) != nil {
+								fmt.Println("Strange; the API returned a non-url to browse to to continue payment, but delivered an OK status code. Here was the URL:")
+								fmt.Println(url)
+							} else if isInsideSnap {
+								if err := clipboard.WriteAll(url); err != nil {
+									fmt.Println("Attempted to copy checkout url to clipboard, but there was an error: " + err.Error())
+									fmt.Println("Please finish your payment at: " + url)
+								} else {
+									fmt.Println("Please browse to the URL pasted into your clipboard and finish your payment.")
+								}
+							} else if err := browseTo(url); err != nil {
+								fmt.Println("An error occured opening the payment URL: ", err)
+								if err := clipboard.WriteAll(url); err != nil {
+									fmt.Println("Attempted to then copy checkout url to clipboard, but there was an error: " + err.Error())
+									fmt.Println("Please finish your payment at: " + url)
+								} else {
+									fmt.Println("Please browse to the URL pasted into your clipboard and finish your payment.")
+								}
+							} else {
+								fmt.Println("Please attempt to finish your payment in the opened browser tab.")
+								fmt.Println("Your payment should be confirmed by the network within ~10 minutes,")
+								fmt.Println("depending on fees.")
+							}
+						} else if method == "crypto" {
+							fmt.Println("Enter an email address to be associated with the payment, in case of disputes. You may use a tempmail if desired:")
+							var email string
+							for {
+								fmt.Scanln(&email)
+								if err := validation.Validate(email, is.Email); err != nil || strings.TrimSpace(email) == "" {
+									fmt.Println("Email entered was invalid; try again:")
+								} else {
+									break
+								}
+							}
+							if resp, err := user.PostForm("/donate", url.Values{
+								"amount":         []string{strconv.FormatFloat(amount, 'f', 5, 64)},
+								"payment_vendor": []string{"globee"},
+								"email":          []string{email},
+							}); err != nil {
+								fmt.Println("Error contacting API (no payment was made):", err)
+							} else if b, err := ioutil.ReadAll(resp.Body); err != nil {
+								fmt.Println("Error reading API response (no payment was made):", err)
+							} else if resp.StatusCode != http.StatusOK {
+								fmt.Println("API returned with an error (no payment was made) and the following response body:", string(b))
+							} else if url := strings.TrimSpace(string(b)); validation.Validate(url, is.URL) != nil {
+								fmt.Println("Strange; the API returned a non-url to browse to to continue payment, but delivered an OK status code. Here was the URL:")
+								fmt.Println(url)
+							} else if isInsideSnap {
+								clipboard.WriteAll(url)
+								fmt.Println("Please browse to the URL pasted into your clipboard and finish your cryptocurrency payment.")
+								fmt.Println("Your donation will be confirmed shortly therafter.")
+							} else if err := browseTo(url); err != nil {
+								fmt.Println("An error occured opening the payment URL: ", err)
+								fmt.Println("Please attempt to go to", url, " in whatever browser you have available manually to finish your payment.")
+								fmt.Println("Your payment should be confirmed by the network credited within ~10 minutes,")
+								fmt.Println("depending on fees.")
+							} else {
+								fmt.Println("Please attempt to finish your cryptocurrency payment in the opened browser tab.")
+								fmt.Println("Your payment should be confirmed by the network within ~10 minutes,")
+								fmt.Println("depending on fees.")
+							}
 						}
 					}, func(err error) {
 						fmt.Println("Couldn't begin donation process:", err)
@@ -376,6 +413,13 @@ func main() {
 				}
 			}
 			if len(os.Args) < 3 {
+				fmt.Println("You need to specify in the third argument whether to pay in cryptocurrency or fiat, e.g.:")
+				fmt.Println("kycli donate crypto [amount]")
+				fmt.Println("Or:")
+				fmt.Println("kycli donate fiat [amount]")
+			} else if method = strings.ToLower(os.Args[2]); method != "crypto" && method != "fiat" {
+				fmt.Println("Unrecognized payment method. Please specify 'crypto' or 'fiat'.")
+			} else if len(os.Args) < 4 {
 				fmt.Println("Enter amount you want to amount, in U.S. dollars: ")
 				if n, err := fmt.Scanf("%f\n", &amount); n != 1 || err != nil {
 					fmt.Println("Couldn't parse payment amount;", err)
@@ -384,7 +428,7 @@ func main() {
 				}
 			} else {
 				var err error
-				if amount, err = strconv.ParseFloat(strings.TrimRight(os.Args[2], "$"), 64); err != nil {
+				if amount, err = strconv.ParseFloat(strings.TrimRight(os.Args[3], "$"), 64); err != nil {
 					fmt.Println("An amount argument was provided, but it wasn't a decimal number. Try again.")
 				} else {
 					philanthropize()
