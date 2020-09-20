@@ -2,10 +2,10 @@
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/kycli)
 
-This repository houses the GPLv3 licensed UnofficialKYC CLI. People can use this
-application to create tokens, accounts, and services on the UnofficialKYC
-platform, as well as increase their UFKYC credibility scores by donating
-cryptocurrency to impoverished African children.
+This repository houses the GPLv3 licensed UnofficialKYC CLI. People can use
+this application to create tokens, accounts, and services on the UnofficialKYC
+platform, as well as increase their UFKYC credibility scores by donating money
+or cryptocurrency to the third world.
 
 This project is in the very early stages of its existence. We're publishing it
 because we want you to use it, but be aware, you're probably going to have
@@ -22,7 +22,7 @@ tested.
     * [Who am I paying and why? You say it's going to charity?](#who-am-i-paying-and-why-you-say-its-going-to-charity)
     * [How does UFKYC's authentication flow work?](#how-does-ufkycs-authentication-flow-work)
     * [Why did you start by publishing a CLI and not a GUI or web application?](#why-did-you-start-by-publishing-a-cli-and-not-a-gui-or-web-application)
-    * [Why cryptocurrency?](#why-cryptocurrency)
+    * [What payment methods does UFKYC accept?](#what-payment-methods-does-ufkyc-accept)
 * [Installation](#installation)
     * [Snap](#snap)
     * [Manual compilation (it's not as hard as it usually is)](#manual-compilation-its-not-as-hard-as-it-usually-is)
@@ -149,15 +149,12 @@ anything, and in the long term we're looking at making a desktop GUI, too. We
 expect the web app should be finished by the end of September, but make no
 promises.
 
-### Why cryptocurrency?
+### What payment methods does UFKYC accept?
 
-It was easier to setup, we like cryptocurrency, and good ones like Monero allow
-for easy, private payments. Existing solutions in this space like per-service
-paywalls or traditional KYC usually inadvertently require that users give up
-their personal information to a random internet service, and we wanted a
-product which didn't require that of our users. That being said, we *are*
-working on "regular" payments as an option for users who don't want to have to
-buy monopoly money.
+UFKYC accepts both card (through stripe) and several cryptocurrencies (through
+globee) for donations. We're working on a way to get donations sent via a
+first-party integration with givedirectly.org; for now, you have to donate
+through one of these venues and we pass along the money to them every week.
 
 ## Installation
 
